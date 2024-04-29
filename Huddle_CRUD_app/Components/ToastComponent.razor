@@ -1,0 +1,54 @@
+﻿@using Huddle_CRUD.Core.Common;
+@using Huddle_CRUD.Core.Enum;
+@using Huddle_CRUD_app.Services;
+@if (messages is not null && messages.Any())
+{
+    foreach (var item in messages)
+    {
+
+        if (item.ToastLevel == ToastLevel.Success)
+        {
+            <div class="alert alert-success" role="alert">
+                @item.Message
+            </div>
+        }
+        if (item.ToastLevel == ToastLevel.Error)
+        {
+            <div class="alert alert-danger" role="alert">
+                @item.Message
+
+            </div>
+        }
+        if (item.ToastLevel == ToastLevel.Warning)
+        {
+            <div class="alert alert-warning" role="alert">
+                @item.Message
+            </div>
+        }
+    }
+}
+
+@code {
+    @inject ToastService toastService;
+    List<ToastNotification> messages = new List<ToastNotification>();
+    ToastLevel type;
+    protected override void OnInitialized()
+    {
+        toastService.OnShow += ShowToast;
+    }
+
+    async void ShowToast(string message, ToastLevel level, TimeSpan duration)
+    {
+        var newMessage = new ToastNotification
+            {
+                Message = message,
+                ToastLevel = level,
+                Duration = duration
+            };
+        messages.Add(newMessage);
+        StateHasChanged();
+        await Task.Delay(newMessage.Duration);
+        messages.Remove(newMessage);
+        StateHasChanged();
+    }
+}

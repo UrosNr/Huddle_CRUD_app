@@ -1,0 +1,128 @@
+﻿@page "/teams"
+@if (!addingTeam)
+{
+    <h3 class="mt-2">Teams</h3>
+
+    @* Filter Section *@
+    <div class="filter-section">
+        <form>
+            <div class="d-flex p1">
+                <div class="form-group w-25 me-2">
+                    <label for="teamId">Team ID:</label>
+                    <input type="text" class="form-control" id="teamId" @bind="teamFilter.Id" />
+                </div>
+                <div class="form-group w-25 me-2">
+                    <label for="teamName">Team Name:</label>
+                    <input type="text" class="form-control" id="teamName" @bind="teamFilter.Name" />
+                </div>
+                <div class="form-group w-25 me-2">
+                    <label for="teamId">Sort:</label>
+                    <select class="form-select" aria-label="Sort" @bind="teamFilter.SortBy">
+                        <option selected value="asc">Ascending</option>
+                        <option value="desc">Descending</option>
+                    </select>
+                </div>
+                <button type="button" class="btn btn-primary mt-auto me-2" @onclick="()=>FindTeams(teamFilter)">Search</button>
+                <button type="button" class="btn btn-danger mt-auto" @onclick="()=>ClearFilter()">Clear</button>
+
+                <button type="button" class="btn btn-success  mt-auto ms-auto" @onclick="()=>ToggleAddTeam()">Add</button>
+            </div>
+        </form>
+    </div>
+
+    @* Team Table *@
+    <table class="table mt-3">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Timestamp</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (teams is not null && teams.Result.Any())
+            {
+                @foreach (var team in teams.Result)
+                {
+                    <tr>
+                        <td>@team.Id</td>
+                        <td>
+                            @if (team.EditMode)
+                            {
+                                <input type="text" class="form-control" @bind:event="oninput" @bind="team.Name" />
+                            }
+                            else
+                            {
+                                @team.Name
+                            }
+                        </td>
+                        <td>@team.Timestamp.ToShortDateString()</td>
+                        <td>
+                            @if (team.EditMode)
+                            {
+                                <button type="button" class="btn btn-primary" disabled="@BeforeUpdateCheck(team)" @onclick="()=>UpdateTeam(team)">Save</button>
+                                <button type="button" class="btn btn-danger" @onclick="()=>ToggleEdit(team, cancel: true)">Cancel</button>
+                            }
+                            else
+                            {
+                                <button type="button" class="btn btn-primary" @onclick="()=>ToggleEdit(team)">Edit</button>
+                                <button type="button" class="btn btn-danger" @onclick="()=>DeleteTeam(team.Id)">Delete</button>
+                            }
+                        </td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <div>No teams found!</div>
+            }
+        </tbody>
+    </table>
+
+    @* Pagination *@
+    @if (teams != null && teams.Result.Any())
+    {
+        <nav class="d-flex">
+            
+            <div class="d-flex">
+                <label for="teamName">Page size:</label>
+                <select class="form-select" @bind="teamFilter.PageSize" @bind:after="()=>OnPageSizeChange()">
+                    <option selected value="5">5</option>
+                    <option value="10">10</option>
+                    <option value="20">20</option>
+                </select>
+            </div>
+            <ul class="pagination ms-auto">
+                <li class="page-item @(teams.HasPreviousPage ? "" : "disabled")">
+                    <a class="page-link" @onclick="()=>ChangePage(teams.CurrentPage - 1)">Previous</a>
+                </li>
+                <li class="page-item"><a class="page-link">@teams.CurrentPage of @teams.TotalPages</a></li>
+                <li class="page-item @(teams.HasNextPage ? "" : "disabled" )">
+                    <a class="page-link" @onclick="()=>ChangePage(teams.CurrentPage + 1)">Next</a>
+                </li>
+            </ul>
+            <div class="ms-auto">Total Results: <b>@teams.TotalResultCount</b></div>
+        </nav>
+    }
+
+}
+else
+{
+    @* Add Team Form *@
+    <div class="add-team-form">
+        <h3>Add New Team</h3>
+        <form>
+            <div class="d-flex">
+                <div class="form-group w-25 me-2">
+                    <label for="newTeamName">Team Name:</label>
+                    <input type="text" class="form-control" id="newTeamName" @bind:event="oninput" @bind="newTeamName" />
+                </div>
+                <button type="button" class="btn btn-primary mt-auto me-2" disabled="@string.IsNullOrEmpty(newTeamName)" @onclick="()=>InsertTeam(newTeamName)">Add Team</button>
+                <button type="button" class="btn btn-secondary mt-auto" @onclick="()=>addingTeam = false">Cancel</button>
+            </div>
+        </form>
+    </div>
+}
+
+

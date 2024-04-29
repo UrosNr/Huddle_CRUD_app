@@ -1,0 +1,16 @@
+﻿@using Huddle_CRUD_app.Components
+@inherits LayoutComponentBase
+
+<div class="page">
+    <div class="sidebar">
+        <NavMenu />
+    </div>
+    <main>
+        <article class="content px-4">
+            @Body
+        </article>
+        <div class="error-container">
+            <ToastComponent />
+        </div>
+    </main>
+</div>
